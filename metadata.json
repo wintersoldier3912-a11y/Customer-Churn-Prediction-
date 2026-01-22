@@ -1,0 +1,5 @@
+{
+  "name": "Telco Churn Analytics & Prediction",
+  "description": "A comprehensive churn prediction dashboard featuring EDA visualizations, model performance metrics, and an AI-powered churn risk predictor with feature importance (SHAP) explanations.",
+  "requestFramePermissions": []
+}
