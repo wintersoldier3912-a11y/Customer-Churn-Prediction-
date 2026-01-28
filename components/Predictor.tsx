@@ -1,8 +1,91 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { CustomerData, ChurnPrediction } from '../types';
 import { predictChurn } from '../services/gemini';
-import { ShieldAlert, CheckCircle2, Info, Loader2, RefreshCcw, Target, Star, Send, Download, UserCircle, Briefcase, CreditCard, BarChart as BarChartIcon } from 'lucide-react';
+import { 
+  ShieldAlert, CheckCircle2, Info, Loader2, RefreshCcw, Target, Star, 
+  Send, Download, UserCircle, Briefcase, CreditCard, BarChart as BarChartIcon,
+  Search, X, UserPlus, Database
+} from 'lucide-react';
+
+// Mock Customer Database for lookup feature
+const MOCK_CUSTOMERS = [
+  {
+    id: "CUST-8231",
+    name: "Alex Johnson",
+    data: {
+      gender: 'Male',
+      SeniorCitizen: 0,
+      Partner: 'No',
+      Dependents: 'No',
+      tenure: 5,
+      PhoneService: 'Yes',
+      MultipleLines: 'No',
+      InternetService: 'Fiber optic',
+      OnlineSecurity: 'No',
+      OnlineBackup: 'Yes',
+      DeviceProtection: 'No',
+      TechSupport: 'No',
+      StreamingTV: 'Yes',
+      StreamingMovies: 'No',
+      Contract: 'Month-to-month',
+      PaperlessBilling: 'Yes',
+      PaymentMethod: 'Electronic check',
+      MonthlyCharges: 85.20,
+      TotalCharges: 426.00
+    }
+  },
+  {
+    id: "CUST-1044",
+    name: "Sarah Williams",
+    data: {
+      gender: 'Female',
+      SeniorCitizen: 1,
+      Partner: 'Yes',
+      Dependents: 'No',
+      tenure: 62,
+      PhoneService: 'Yes',
+      MultipleLines: 'Yes',
+      InternetService: 'DSL',
+      OnlineSecurity: 'Yes',
+      OnlineBackup: 'Yes',
+      DeviceProtection: 'Yes',
+      TechSupport: 'Yes',
+      StreamingTV: 'No',
+      StreamingMovies: 'Yes',
+      Contract: 'Two year',
+      PaperlessBilling: 'No',
+      PaymentMethod: 'Bank transfer (automatic)',
+      MonthlyCharges: 74.85,
+      TotalCharges: 4640.70
+    }
+  },
+  {
+    id: "CUST-9920",
+    name: "Michael Chen",
+    data: {
+      gender: 'Male',
+      SeniorCitizen: 0,
+      Partner: 'Yes',
+      Dependents: 'Yes',
+      tenure: 24,
+      PhoneService: 'Yes',
+      MultipleLines: 'Yes',
+      InternetService: 'Fiber optic',
+      OnlineSecurity: 'No',
+      OnlineBackup: 'No',
+      DeviceProtection: 'No',
+      TechSupport: 'No',
+      StreamingTV: 'Yes',
+      StreamingMovies: 'Yes',
+      Contract: 'One year',
+      PaperlessBilling: 'Yes',
+      PaymentMethod: 'Credit card (automatic)',
+      MonthlyCharges: 99.15,
+      TotalCharges: 2379.60
+    }
+  }
+];
 
 const INITIAL_DATA: CustomerData = {
   gender: 'Female',
@@ -30,11 +113,27 @@ const Predictor: React.FC = () => {
   const [formData, setFormData] = useState<CustomerData>(INITIAL_DATA);
   const [prediction, setPrediction] = useState<ChurnPrediction | null>(null);
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Feedback state
   const [rating, setRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState('');
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
+  const filteredCustomers = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const query = searchQuery.toLowerCase();
+    return MOCK_CUSTOMERS.filter(c => 
+      c.name.toLowerCase().includes(query) || 
+      c.id.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
+
+  const handleSelectCustomer = (customer: typeof MOCK_CUSTOMERS[0]) => {
+    setFormData(customer.data);
+    setSearchQuery('');
+    setPrediction(null);
+  };
 
   const handlePredict = async () => {
     setLoading(true);
@@ -124,6 +223,70 @@ const Predictor: React.FC = () => {
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start pb-12">
       {/* Input Section */}
       <div className="xl:col-span-2 space-y-6">
+        {/* Customer Search Bar */}
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative z-50">
+           <div className="flex items-center gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search customer by ID (e.g., CUST-8231) or Name..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                />
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+              <div className="hidden md:flex items-center gap-2 text-slate-400 text-xs font-medium">
+                <Database size={14} />
+                <span>Local DB Connected</span>
+              </div>
+           </div>
+
+           {/* Search Results Dropdown */}
+           {filteredCustomers.length > 0 && (
+             <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="p-2 border-b border-slate-100 bg-slate-50 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4">
+                   Matching Customer Records
+                </div>
+                {filteredCustomers.map((customer) => (
+                  <button
+                    key={customer.id}
+                    onClick={() => handleSelectCustomer(customer)}
+                    className="w-full flex items-center justify-between p-4 hover:bg-indigo-50 transition-colors group text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold text-sm">
+                        {customer.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-slate-800 group-hover:text-indigo-700">{customer.name}</div>
+                        <div className="text-xs text-slate-500 font-mono">{customer.id}</div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                       <div className="text-[10px] font-bold text-slate-400 uppercase">{customer.data.Contract}</div>
+                       <div className="text-xs font-bold text-slate-600">${customer.data.MonthlyCharges}/mo</div>
+                    </div>
+                  </button>
+                ))}
+             </div>
+           )}
+           {searchQuery.trim() && filteredCustomers.length === 0 && (
+             <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-xl p-6 shadow-xl text-center z-50">
+                <UserPlus className="mx-auto text-slate-200 mb-2" size={32} />
+                <p className="text-sm text-slate-500">No matching customer found. Try manually entering details below.</p>
+             </div>
+           )}
+        </div>
+
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
           <div className="flex justify-between items-center mb-8">
             <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
