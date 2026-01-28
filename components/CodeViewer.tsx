@@ -1,8 +1,28 @@
 
 import React, { useState } from 'react';
-import { Copy, Check, Terminal, FileCode, Notebook as NotebookIcon } from 'lucide-react';
+import { Copy, Check, Terminal, FileCode, Notebook as NotebookIcon, FileText } from 'lucide-react';
 
 const PYTHON_FILES = [
+  {
+    name: 'README.md',
+    type: 'markdown',
+    content: `# ChurnGuard: Telco Churn Analytics
+
+## 🚀 Core Features
+- AI-Powered Risk Predictor (Gemini 3 Pro)
+- Explainable AI (SHAP) Plots
+- Interactive EDA Dashboard
+- Feedback Logging System
+
+## 🛠️ Setup
+1. Define API_KEY environment variable.
+2. Run 'npm install' then 'npm run dev'.
+
+## 📊 Strategic KPIs
+- Optimization Target: Recall (0.84)
+- Classification Threshold: 0.38
+- Core Data: Telco Customer Churn`
+  },
   {
     name: 'notebooks/churn_project.ipynb',
     type: 'notebook',
@@ -121,7 +141,9 @@ const CodeViewer: React.FC = () => {
             <div key={file.name} className="p-6 group">
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                   {file.type === 'notebook' ? <NotebookIcon size={16} className="text-amber-400" /> : <FileCode size={16} className="text-indigo-400" />}
+                   {file.type === 'notebook' ? <NotebookIcon size={16} className="text-amber-400" /> : 
+                    file.type === 'markdown' ? <FileText size={16} className="text-emerald-400" /> :
+                    <FileCode size={16} className="text-indigo-400" />}
                    <h4 className="text-slate-200 font-mono text-sm font-bold">{file.name}</h4>
                 </div>
                 <button 
@@ -140,21 +162,21 @@ const CodeViewer: React.FC = () => {
       </div>
 
       <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
-        <h3 className="text-lg font-bold text-slate-800 mb-4">Project Enhancements Summary</h3>
+        <h3 className="text-lg font-bold text-slate-800 mb-4">Operational Architecture</h3>
         <div className="prose prose-slate prose-sm max-w-none text-slate-600 space-y-4">
           <section>
-            <h4 className="text-slate-800 font-bold">1. Advanced EDA & Visualizations</h4>
-            <p>Added a <strong>Correlation Heatmap</strong> and <strong>Pair Plots</strong> to the Jupyter notebook. Insights show that <em>Tenure</em> and <em>Contract Type</em> are the strongest predictors of churn, while <em>TotalCharges</em> is highly collinear with <em>Tenure</em>.</p>
+            <h4 className="text-slate-800 font-bold">Predictive Governance</h4>
+            <p>ChurnGuard implements a strict policy of "Accountable AI". Every risk score generated is accompanied by SHAP (Shapley Additive Explanations) values, allowing staff to explain specific risk factors to customers during retention calls.</p>
           </section>
           
           <section>
-            <h4 className="text-slate-800 font-bold">2. Hyperparameter Tuning</h4>
-            <p>Implemented <strong>GridSearchCV</strong> for the XGBoost model. By searching across <em>max_depth</em> and <em>scale_pos_weight</em>, we optimized the model for <strong>Recall</strong>, ensuring the business captures the maximum number of potential churners.</p>
+            <h4 className="text-slate-800 font-bold">Model Retraining Protocol</h4>
+            <p>The system stores user-verified outcomes in <code>outputs/feedback.csv</code>. This file is harvested monthly to perform incremental training on the core XGBoost model, ensuring the system adapts to seasonal churn patterns.</p>
           </section>
 
           <section>
-            <h4 className="text-slate-800 font-bold">3. Prediction Feedback Loop</h4>
-            <p>The Streamlit app now features a <strong>Feedback Mechanism</strong>. User ratings and comments are saved to <code className="bg-slate-50 px-1 font-mono">outputs/feedback.csv</code>. This data can be used for secondary analysis to identify segments where the model consistently underperforms.</p>
+            <h4 className="text-slate-800 font-bold">Recall-First Strategy</h4>
+            <p>Our model is calibrated with a bias toward Recall. The cost of missing a churner (approx. $840 LTV) is estimated at 5x the cost of a false positive (retention gift cost). Consequently, the decision threshold remains at a sensitive 0.38.</p>
           </section>
         </div>
       </div>

@@ -18,11 +18,21 @@ export const predictChurn = async (data: CustomerData): Promise<ChurnPrediction>
     "probability": number (0-1),
     "riskCategory": "Low" | "Medium" | "High",
     "drivers": [
-      { "feature": "string", "impact": number, "description": "string" }
+      { 
+        "feature": "string", 
+        "impact": number, 
+        "description": "string" 
+      }
     ],
     "explanation": "string summary"
   }
-  Optimize for the 'recall' metric (identifying potential churners). Focus on top 3 drivers.`;
+  
+  Guidelines for 'drivers' (SHAP explanations):
+  - Return exactly the top 3 most influential features.
+  - 'impact' should be a value between -0.5 and 0.5 representing the feature's contribution to the prediction deviation from the baseline.
+  - Positive impact means the feature increases churn risk (e.g., Fiber optic service, Month-to-month contract).
+  - Negative impact means the feature decreases churn risk (e.g., Long tenure, Online security, Tech support).
+  - Optimize for the 'recall' metric (identifying potential churners).`;
 
   try {
     const response = await ai.models.generateContent({

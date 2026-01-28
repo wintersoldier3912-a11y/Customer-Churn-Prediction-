@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { CustomerData, ChurnPrediction } from '../types';
 import { predictChurn } from '../services/gemini';
-import { ShieldAlert, CheckCircle2, Info, Loader2, RefreshCcw, Target, Star, Send, Download, UserCircle, Briefcase, CreditCard } from 'lucide-react';
+import { ShieldAlert, CheckCircle2, Info, Loader2, RefreshCcw, Target, Star, Send, Download, UserCircle, Briefcase, CreditCard, BarChart as BarChartIcon } from 'lucide-react';
 
 const INITIAL_DATA: CustomerData = {
   gender: 'Female',
@@ -129,7 +129,16 @@ const Predictor: React.FC = () => {
             <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                Predictive Risk Input Form
             </h3>
-            <span className="text-[10px] bg-slate-100 text-slate-500 px-2 py-1 rounded font-bold uppercase">Manual Overrides</span>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={downloadFeedback}
+                className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-[10px] font-bold uppercase transition-all shadow-sm"
+                title="Download all collected feedback logs in CSV format"
+              >
+                <Download size={14} /> Export Feedback CSV
+              </button>
+              <span className="text-[10px] bg-indigo-100 text-indigo-700 px-2 py-1.5 rounded font-bold uppercase tracking-wider">Manual Overrides</span>
+            </div>
           </div>
 
           <FormSection title="Customer Demographics" icon={<UserCircle size={18} />}>
@@ -305,21 +314,40 @@ const Predictor: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <h5 className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                  <Info size={16} /> Top Churn Drivers
+              {/* SHAP Explanation Visual Chart */}
+              <div className="space-y-4 pt-4 border-t border-slate-200/50">
+                <h5 className="text-xs font-bold text-slate-700 flex items-center gap-2 uppercase tracking-widest">
+                  <BarChartIcon size={14} className="text-indigo-500" /> SHAP Contribution Plot
                 </h5>
-                {prediction.drivers.map((driver, idx) => (
-                  <div key={idx} className="bg-white/60 p-3 rounded-lg border border-white">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-bold text-slate-800">{driver.feature}</span>
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${driver.impact > 0 ? 'bg-rose-100 text-rose-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                        {driver.impact > 0 ? '+' : ''}{Math.round(driver.impact * 100)} SHAP
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-600 leading-tight">{driver.description}</p>
-                  </div>
-                ))}
+                <div className="space-y-3">
+                  {prediction.drivers.map((driver, idx) => {
+                    const impactVal = Math.round(driver.impact * 100);
+                    const isPositive = impactVal > 0;
+                    return (
+                      <div key={idx} className="space-y-1">
+                        <div className="flex justify-between items-center text-[10px] font-bold">
+                          <span className="text-slate-800">{driver.feature}</span>
+                          <span className={isPositive ? 'text-rose-600' : 'text-emerald-600'}>
+                            {isPositive ? '+' : ''}{impactVal} SHAP
+                          </span>
+                        </div>
+                        <div className="relative h-4 bg-slate-100 rounded-sm overflow-hidden flex items-center">
+                          {/* Zero line */}
+                          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-300 z-10"></div>
+                          {/* Impact Bar */}
+                          <div 
+                            className={`h-full absolute transition-all duration-700 ${isPositive ? 'bg-rose-400' : 'bg-emerald-400'}`}
+                            style={{
+                              left: isPositive ? '50%' : `calc(50% - ${Math.abs(impactVal)}%)`,
+                              width: `${Math.abs(impactVal)}%`
+                            }}
+                          ></div>
+                        </div>
+                        <p className="text-[10px] text-slate-500 leading-tight italic px-1">{driver.description}</p>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
